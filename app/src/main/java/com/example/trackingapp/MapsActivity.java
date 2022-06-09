@@ -38,6 +38,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationApplication locationApplication = (LocationApplication) getApplicationContext();
 
         savedLocations = locationApplication.getLocationList();
+
     }
 
     /**
@@ -60,7 +61,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             marker.title("Lat: " + location.getLatitude() + " Lon: " + location.getLongitude());
             mMap.addMarker(marker);
         }
-        LatLng lastLocation = new LatLng(savedLocations.get(savedLocations.size()-1).getLatitude(), savedLocations.get(savedLocations.size()-1).getLongitude());
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lastLocation,12.0f));
+        Location  lastLocation = savedLocations.get(savedLocations.size() -1);
+        LatLng lastLocationLatLgn = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLgn,12.0f));
     }
 }

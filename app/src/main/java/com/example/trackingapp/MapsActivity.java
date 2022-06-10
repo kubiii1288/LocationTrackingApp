@@ -1,15 +1,18 @@
 package com.example.trackingapp;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.trackingapp.databinding.ActivityMapsBinding;
 
@@ -19,7 +22,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
-
+    String hashcode = "";
     private List<Location> savedLocations;
 
 
@@ -64,5 +67,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location  lastLocation = savedLocations.get(savedLocations.size() -1);
         LatLng lastLocationLatLgn = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLgn,12.0f));
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(@NonNull Marker marker) {
+
+                GetLocationHash getHash = new GetLocationHash(hashcode);
+                getHash.execute(marker.getPosition());
+                Toast.makeText(MapsActivity.this, "The location has the hash: " + hashcode, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
     }
 }

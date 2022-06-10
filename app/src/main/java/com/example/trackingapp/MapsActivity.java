@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -16,13 +17,17 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.trackingapp.databinding.ActivityMapsBinding;
 
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
+
+import java.nio.channels.AsynchronousByteChannel;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
-    String hashcode = "";
     private List<Location> savedLocations;
 
 
@@ -72,11 +77,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public boolean onMarkerClick(@NonNull Marker marker) {
 
-                GetLocationHash getHash = new GetLocationHash(hashcode);
+                GetLocationHash getHash = new GetLocationHash();
                 getHash.execute(marker.getPosition());
-                Toast.makeText(MapsActivity.this, "The location has the hash: " + hashcode, Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
+    }
+
+    private class GetLocationHash extends AsyncTask<LatLng, Void,String>{
+        @Override
+        protected String doInBackground(LatLng... latLngs) {
+
+            String LocationString = latLngs[0].toString();
+            System.out.println("create context...");
+            ZContext context = new ZContext(1);
+            ZMQ.Socket socket = context.createSocket(SocketType.REQ);
+            socket.connect("tcp://192.168.20.11:7777");
+            System.out.println("start sending request...");
+
+            byte[] request = LocationString.getBytes();
+            socket.send(request,0);
+            byte[] response = socket.recv(0);
+            System.out.println("received from server..." + new String(response));
+            socket.close();
+            context.close();
+
+            System.out.println("finished task...");
+            return new String(response);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            Toast.makeText(MapsActivity.this, result, Toast.LENGTH_LONG).show();
+        }
     }
 }
